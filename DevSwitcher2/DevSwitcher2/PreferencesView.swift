@@ -12,65 +12,98 @@ struct PreferencesView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var languageManager = LanguageManager.shared
     @State private var selectedTab = 0
+    @Namespace private var preferencesTabNamespace
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 顶部标题栏
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("DevSwitcher2")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Text(LocalizedStrings.preferencesSubtitle)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Tab selector
-                HStack(spacing: 4) {
-                    TabButton(title: LocalizedStrings.generalSettingsTabTitle, isSelected: selectedTab == 0) {
-                        selectedTab = 0
+        AdaptiveGlassContainer(spacing: 12) {
+            VStack(spacing: 0) {
+                // 顶部标题栏
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("DevSwitcher2")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Text(LocalizedStrings.preferencesSubtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                     
-                    TabButton(title: LocalizedStrings.advancedSettingsTabTitle, isSelected: selectedTab == 1) {
-                        selectedTab = 1
-                    }
+                    Spacer()
                     
-                    TabButton(title: LocalizedStrings.aboutTabTitle, isSelected: selectedTab == 2) {
-                        selectedTab = 2
+                    // Tab selector
+                    HStack(spacing: 4) {
+                        TabButton(
+                            title: LocalizedStrings.generalSettingsTabTitle,
+                            isSelected: selectedTab == 0,
+                            namespace: preferencesTabNamespace
+                        ) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                selectedTab = 0
+                            }
+                        }
+                        
+                        TabButton(
+                            title: LocalizedStrings.advancedSettingsTabTitle,
+                            isSelected: selectedTab == 1,
+                            namespace: preferencesTabNamespace
+                        ) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                selectedTab = 1
+                            }
+                        }
+                        
+                        TabButton(
+                            title: LocalizedStrings.aboutTabTitle,
+                            isSelected: selectedTab == 2,
+                            namespace: preferencesTabNamespace
+                        ) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                selectedTab = 2
+                            }
+                        }
                     }
-                }
-                .padding(4)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-            .background(.ultraThinMaterial)
-            
-            // Content area
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    if selectedTab == 0 {
-                        GeneralSettingsView()
-                    } else if selectedTab == 1 {
-                        AdvancedSettingsView()
-                    } else {
-                        AboutView()
-                    }
+                    .padding(4)
+                    .adaptiveGlass(
+                        variant: .regular,
+                        tint: nil,
+                        interactive: false,
+                        in: RoundedRectangle(cornerRadius: 10, style: .continuous),
+                        fallbackMaterial: .regular
+                    )
                 }
                 .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+                .adaptiveGlass(
+                    variant: .clear,
+                    tint: nil,
+                    interactive: false,
+                    in: Rectangle(),
+                    fallbackMaterial: .ultraThin
+                )
+                
+                // Content area
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        if selectedTab == 0 {
+                            GeneralSettingsView()
+                        } else if selectedTab == 1 {
+                            AdvancedSettingsView()
+                        } else {
+                            AboutView()
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .frame(width: 800, height: 600)
-        .background(Color(NSColor.windowBackgroundColor))
-        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
-            // Force refresh view when language changes
-            // SwiftUI will automatically recalculate LocalizedStrings values
+            .frame(width: 800, height: 600)
+            .background(Color(NSColor.windowBackgroundColor))
+            .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+                // Force refresh view when language changes
+                // SwiftUI will automatically recalculate LocalizedStrings values
+            }
         }
     }
 }
@@ -78,6 +111,7 @@ struct PreferencesView: View {
 struct TabButton: View {
     let title: String
     let isSelected: Bool
+    let namespace: Namespace.ID
     let action: () -> Void
     
     var body: some View {
@@ -88,8 +122,22 @@ struct TabButton: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(isSelected ? Color.accentColor : Color.clear)
+                    Group {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(Color.accentColor)
+                                .adaptiveGlass(
+                                    variant: .regular,
+                                    tint: Color.accentColor.opacity(0.65),
+                                    interactive: true,
+                                    in: RoundedRectangle(cornerRadius: 7, style: .continuous),
+                                    fallbackMaterial: .clear
+                                )
+                                .adaptiveGlassID("activePreferencesTab", in: namespace)
+                        } else {
+                            Color.clear
+                        }
+                    }
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -135,13 +183,23 @@ struct GeneralSettingsSection: View {
                 }
             }
             .padding(20)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .adaptiveGlass(
+                variant: .clear,
+                tint: nil,
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                fallbackMaterial: .thin
+            )
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.gray.opacity(0.1),
+            fallbackStrokeWidth: 1
         )
     }
 }
@@ -181,16 +239,20 @@ struct LanguageSettingsSection: View {
                 Button(LocalizedStrings.languageRestartNowButton) {
                     restartApplication()
                 }
-                .buttonStyle(.borderedProminent)
+                .adaptiveGlassButtonStyle(prominent: true)
                 .controlSize(.small)
             }
             .padding(.horizontal, 32)
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: Color.accentColor.opacity(0.04),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.accentColor.opacity(0.1),
+            fallbackStrokeWidth: 1
         )
     }
     
@@ -256,13 +318,13 @@ struct DS2HotkeySettingsSection: View {
                     Button(LocalizedStrings.hotkeyApply) {
                         onApply()
                     }
-                    .buttonStyle(.borderedProminent)
+                    .adaptiveGlassButtonStyle(prominent: true)
                     .controlSize(.small)
                     
                     Button(LocalizedStrings.hotkeyReset) {
                         onReset()
                     }
-                    .buttonStyle(.bordered)
+                    .adaptiveGlassButtonStyle(prominent: false)
                     .controlSize(.small)
                 }
             }
@@ -321,13 +383,23 @@ struct DS2HotkeySettingsSection: View {
                 .padding(.top, 4)
             }
             .padding(20)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .adaptiveGlass(
+                variant: .clear,
+                tint: nil,
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                fallbackMaterial: .thin
+            )
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.blue.opacity(0.1), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: Color.blue.opacity(0.04),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.blue.opacity(0.1),
+            fallbackStrokeWidth: 1
         )
     }
 }
@@ -408,13 +480,13 @@ struct CT2HotkeySettingsSection: View {
                             Button(LocalizedStrings.hotkeyApply) {
                                 onApply()
                             }
-                            .buttonStyle(.borderedProminent)
+                            .adaptiveGlassButtonStyle(prominent: true)
                             .controlSize(.small)
                             
                             Button(LocalizedStrings.hotkeyReset) {
                                 onReset()
                             }
-                            .buttonStyle(.bordered)
+                            .adaptiveGlassButtonStyle(prominent: false)
                             .controlSize(.small)
                         }
                     }
@@ -431,7 +503,13 @@ struct CT2HotkeySettingsSection: View {
                     .padding(.top, 4)
                 }
                 .padding(20)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .adaptiveGlass(
+                    variant: .clear,
+                    tint: nil,
+                    interactive: false,
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                    fallbackMaterial: .thin
+                )
             } else {
                 Text(LocalizedStrings.ct2DisabledMessage)
                     .font(.subheadline)
@@ -439,14 +517,24 @@ struct CT2HotkeySettingsSection: View {
                     .italic()
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .adaptiveGlass(
+                        variant: .clear,
+                        tint: nil,
+                        interactive: false,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .thin
+                    )
             }
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.green.opacity(0.1), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: Color.green.opacity(0.04),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.green.opacity(0.1),
+            fallbackStrokeWidth: 1
         )
     }
 }
