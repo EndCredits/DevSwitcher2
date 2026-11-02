@@ -94,7 +94,8 @@ struct AdaptiveGlassContainer<Content: View>: View {
 }
 
 extension View {
-    /// Applies macOS 26+ Liquid Glass effect with graceful fallback to SwiftUI Material on macOS 12-15.
+    /// Applies macOS 26+ Liquid Glass effect as a background layer (so `self` stays rendered above the glass surface),
+    /// with graceful fallback to SwiftUI Material on macOS 12-15.
     @ViewBuilder
     func adaptiveGlass<S: Shape>(
         variant: AdaptiveGlassVariant = .regular,
@@ -109,7 +110,11 @@ extension View {
             let baseGlass: Glass = (variant == .regular) ? .regular : .clear
             let tintedGlass = tint != nil ? baseGlass.tint(tint) : baseGlass
             let finalGlass = interactive ? tintedGlass.interactive(true) : tintedGlass
-            self.glassEffect(finalGlass, in: shape)
+            self.background(
+                shape
+                    .fill(Color.clear)
+                    .glassEffect(finalGlass, in: shape)
+            )
         } else {
             self
                 .background(

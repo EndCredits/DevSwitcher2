@@ -129,7 +129,6 @@ struct BaseSwitcherView<ItemType>: View {
     
     @State private var hoveredIndex: Int? = nil
     @StateObject private var settingsManager = SettingsManager.shared
-    @Namespace private var switcherGlassNamespace
     
     var body: some View {
         Group {
@@ -226,31 +225,29 @@ struct BaseSwitcherView<ItemType>: View {
             .frame(height: 8)
     }
     
-    // MARK: - Item List View
+    // MARK: -Item List View
     private var itemListView: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                AdaptiveGlassContainer(spacing: 8) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                            Button(action: {
-                                onItemSelect(index)
-                            }) {
-                                itemContentBuilder(
-                                    item,
-                                    index == currentIndex,
-                                    index == hoveredIndex,
-                                    index
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .background(rowBackgroundView(for: index))
-                            // 在简化模式下，为第一个item添加上方圆角
-                            .clipShape(itemClipShape(for: index))
-                            .id(index) // Add ID for scroll positioning
-                            .onHover { isHovering in
-                                hoveredIndex = isHovering ? index : nil
-                            }
+                LazyVStack(spacing: 0) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                        Button(action: {
+                            onItemSelect(index)
+                        }) {
+                            itemContentBuilder(
+                                item,
+                                index == currentIndex,
+                                index == hoveredIndex,
+                                index
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .background(rowBackgroundView(for: index))
+                        // 在简化模式下，为第一个item添加上方圆角
+                        .clipShape(itemClipShape(for: index))
+                        .id(index) // Add ID for scroll positioning
+                        .onHover { isHovering in
+                            hoveredIndex = isHovering ? index : nil
                         }
                     }
                 }
@@ -350,7 +347,8 @@ struct BaseSwitcherView<ItemType>: View {
         let colorScheme = settingsManager.settings.colorScheme
         let shape = itemClipShape(for: index)
         if index == currentIndex {
-            Color.clear
+            shape
+                .fill(colorScheme.primaryColor.opacity(0.14))
                 .adaptiveGlass(
                     variant: .clear,
                     tint: colorScheme.primaryColor.opacity(0.22),
@@ -358,8 +356,6 @@ struct BaseSwitcherView<ItemType>: View {
                     in: shape,
                     fallbackMaterial: .clear
                 )
-                .background(shape.fill(colorScheme.primaryColor.opacity(0.15)))
-                .adaptiveGlassID("selectedRow", in: switcherGlassNamespace)
         } else if index == hoveredIndex {
             shape.fill(colorScheme.primaryColor.opacity(0.08))
         } else {
@@ -689,7 +685,6 @@ struct CircularLayoutView<ItemType>: View {
     let itemContentBuilder: (ItemType, Bool, Bool, Int) -> AnyView
 
     @StateObject private var settingsManager = SettingsManager.shared
-    @Namespace private var circularGlassNamespace
 
     // Ring layout parameters
     private var layoutSizeMultiplier: CGFloat { CGFloat(settingsManager.settings.circularLayoutSize) }
@@ -700,32 +695,36 @@ struct CircularLayoutView<ItemType>: View {
     private var centerIconSize: CGFloat { 40 + (16 * layoutSizeMultiplier) }
     
     var body: some View {
-        AdaptiveGlassContainer(spacing: 12) {
-            ZStack {
-                let colorScheme = settingsManager.settings.colorScheme
-                let ringVariant: AdaptiveGlassVariant = (settingsManager.settings.circularLayoutOuterRingStyle == .frosted) ? .regular : .clear
-                
-                // Background glass effect for outer ring area with color scheme
-                Circle()
-                    .fill(colorScheme.backgroundGradient.opacity(0.18))
-                    .frame(width: outerRadius * 2, height: outerRadius * 2)
-                    .adaptiveGlass(
-                        variant: ringVariant,
-                        tint: colorScheme.primaryColor.opacity(0.08),
-                        interactive: false,
-                        in: Circle(),
-                        fallbackMaterial: .ultraThin
-                    )
-                    .opacity(settingsManager.settings.circularLayoutOuterRingStyle.opacity)
-                
-                // Outer ring with sectors
-                ringSectors
-                
-                // The refined, focused center area
-                centerArea
-            }
-            .frame(width: ringSize, height: ringSize)
+        ZStack {
+            let colorScheme = settingsManager.settings.colorScheme
+            let ringVariant: AdaptiveGlassVariant = (settingsManager.settings.circularLayoutOuterRingStyle == .frosted) ? .regular : .clear
+            let outerRingShape = ArcSector(
+                startAngle: .degrees(0),
+                endAngle: .degrees(360),
+                innerRadius: innerRadius,
+                outerRadius: outerRadius
+            )
+            
+            // Background glass effect for outer ring area (annulus) with color scheme
+            outerRingShape
+                .fill(colorScheme.backgroundGradient.opacity(0.18))
+                .frame(width: outerRadius * 2, height: outerRadius * 2)
+                .adaptiveGlass(
+                    variant: ringVariant,
+                    tint: colorScheme.primaryColor.opacity(0.08),
+                    interactive: false,
+                    in: outerRingShape,
+                    fallbackMaterial: .ultraThin
+                )
+                .opacity(settingsManager.settings.circularLayoutOuterRingStyle.opacity)
+            
+            // Outer ring with sectors
+            ringSectors
+            
+            // The refined, focused center area
+            centerArea
         }
+        .frame(width: ringSize, height: ringSize)
     }
 
     // MARK: - Ring Sectors
@@ -754,7 +753,6 @@ struct CircularLayoutView<ItemType>: View {
                                 in: sectorShape,
                                 fallbackMaterial: .ultraThin
                             )
-                            .adaptiveGlassID("selectedSector", in: circularGlassNamespace)
                     } else {
                         sectorShape
                             .fill(.ultraThinMaterial)
@@ -782,12 +780,13 @@ struct CircularLayoutView<ItemType>: View {
             ZStack {
                 if #available(macOS 26.0, *) {
                     Circle()
-                        .fill(colorScheme.backgroundGradient.opacity(0.25))
-                        .glassEffect(
-                            .regular
-                                .tint(colorScheme.primaryColor.opacity(0.22))
-                                .interactive(true),
-                            in: Circle()
+                        .fill(colorScheme.backgroundGradient.opacity(0.22))
+                        .adaptiveGlass(
+                            variant: .regular,
+                            tint: colorScheme.primaryColor.opacity(0.22),
+                            interactive: true,
+                            in: Circle(),
+                            fallbackMaterial: .ultraThin
                         )
                 } else {
                     // 1. Base material with color scheme gradient

@@ -126,14 +126,13 @@ struct TabButton: View {
                 .background(
                     Group {
                         if isSelected {
-                            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                .fill(Color.accentColor)
+                            Color.clear
                                 .adaptiveGlass(
                                     variant: .regular,
-                                    tint: Color.accentColor.opacity(0.65),
+                                    tint: Color.accentColor.opacity(0.75),
                                     interactive: true,
                                     in: RoundedRectangle(cornerRadius: 7, style: .continuous),
-                                    fallbackMaterial: .clear
+                                    fallbackMaterial: .regular
                                 )
                                 .adaptiveGlassID("activePreferencesTab", in: namespace)
                         } else {
