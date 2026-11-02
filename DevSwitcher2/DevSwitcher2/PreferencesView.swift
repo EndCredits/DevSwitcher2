@@ -694,10 +694,14 @@ struct CollapsibleSection<Content: View>: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                .adaptiveGlass(
+                    variant: .regular,
+                    tint: nil,
+                    interactive: true,
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                    fallbackMaterial: .regular,
+                    fallbackStrokeColor: Color.secondary.opacity(0.1),
+                    fallbackStrokeWidth: 1
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -781,7 +785,7 @@ struct DefaultStrategySection: View {
                 Button(LocalizedStrings.defaultStrategyApply) {
                     settingsManager.updateDefaultTitleStrategy(selectedDefaultStrategy, customSeparator: defaultCustomSeparator)
                 }
-                .buttonStyle(.borderedProminent)
+                .adaptiveGlassButtonStyle(prominent: true)
                 .controlSize(.small)
             }
             
@@ -816,7 +820,13 @@ struct DefaultStrategySection: View {
             }
         }
         .padding(20)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .adaptiveGlass(
+            variant: .clear,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+            fallbackMaterial: .thin
+        )
     }
 }
 
@@ -841,21 +851,21 @@ struct AppConfigsSection: View {
                     Button(LocalizedStrings.appConfigImport) {
                         onImport()
                     }
-                    .buttonStyle(.bordered)
+                    .adaptiveGlassButtonStyle(prominent: false)
                     .controlSize(.small)
                     .disabled(configManager.isProcessing)
                     
                     Button(LocalizedStrings.appConfigExport) {
                         onExport()
                     }
-                    .buttonStyle(.bordered)
+                    .adaptiveGlassButtonStyle(prominent: false)
                     .controlSize(.small)
                     .disabled(settingsManager.settings.appTitleConfigs.isEmpty || configManager.isProcessing)
                     
                     Button(LocalizedStrings.appConfigAdd) {
                         showingAddAppDialog = true
                     }
-                    .buttonStyle(.borderedProminent)
+                    .adaptiveGlassButtonStyle(prominent: true)
                     .controlSize(.small)
                 }
             }
@@ -882,7 +892,13 @@ struct AppConfigsSection: View {
             }
         }
         .padding(20)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .adaptiveGlass(
+            variant: .clear,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+            fallbackMaterial: .thin
+        )
     }
 }
 
@@ -923,10 +939,14 @@ struct WindowTitleConfigView: View {
                 onExport: exportConfiguration
             )
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: Color.purple.opacity(0.04),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.purple.opacity(0.1),
+            fallbackStrokeWidth: 1
         )
         .sheet(isPresented: $showingAddAppDialog) {
             AddAppConfigView(
@@ -1099,7 +1119,13 @@ struct PreviewSectionView: View {
                                     .textSelection(.enabled)
                                     .padding(10)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+                                    .adaptiveGlass(
+                                        variant: .clear,
+                                        tint: nil,
+                                        interactive: false,
+                                        in: RoundedRectangle(cornerRadius: 6, style: .continuous),
+                                        fallbackMaterial: .regular
+                                    )
                                     .help(LocalizedStrings.copyTitle)
                             }
                             .frame(height: 44)
@@ -1130,7 +1156,13 @@ struct PreviewSectionView: View {
                                 Spacer()
                             }
                             .padding(8)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 6))
+                            .adaptiveGlass(
+                                variant: .clear,
+                                tint: nil,
+                                interactive: false,
+                                in: RoundedRectangle(cornerRadius: 6, style: .continuous),
+                                fallbackMaterial: .ultraThin
+                            )
                             
                             // 提取结果显示
                             HStack {
@@ -1141,10 +1173,14 @@ struct PreviewSectionView: View {
                                     .textSelection(.enabled)
                                     .padding(12)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.accentColor.opacity(0.3), lineWidth: 2)
+                                    .adaptiveGlass(
+                                        variant: .regular,
+                                        tint: Color.accentColor.opacity(0.08),
+                                        interactive: false,
+                                        in: RoundedRectangle(cornerRadius: 8, style: .continuous),
+                                        fallbackMaterial: .thin,
+                                        fallbackStrokeColor: Color.accentColor.opacity(0.3),
+                                        fallbackStrokeWidth: 2
                                     )
                             }
                         }
@@ -1153,7 +1189,13 @@ struct PreviewSectionView: View {
             }
         }
         .padding()
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .adaptiveGlass(
+            variant: .regular,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+            fallbackMaterial: .regular
+        )
         .onChange(of: strategy) { _ in
             // 策略改变时触发重新计算
         }
@@ -1245,10 +1287,14 @@ struct AppConfigRowView: View {
             .help(LocalizedStrings.deleteConfigTooltip)
         }
         .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+        .adaptiveGlass(
+            variant: .clear,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 10, style: .continuous),
+            fallbackMaterial: .ultraThin,
+            fallbackStrokeColor: Color.primary.opacity(0.05),
+            fallbackStrokeWidth: 1
         )
     }
 }
@@ -1274,208 +1320,236 @@ struct AddAppConfigView: View {
     @State private var selectedApp: InstalledAppInfo? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 标题区域
-            HStack {
-                Text(LocalizedStrings.addAppConfig)
-                    .font(.title2)
-                    .fontWeight(.semibold)
+        AdaptiveGlassContainer(spacing: 12) {
+            VStack(alignment: .leading, spacing: 0) {
+                // 标题区域
+                HStack {
+                    Text(LocalizedStrings.addAppConfig)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+                .adaptiveGlass(
+                    variant: .regular,
+                    tint: Color.accentColor.opacity(0.04),
+                    interactive: false,
+                    in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+                    fallbackMaterial: .regular,
+                    fallbackStrokeColor: Color.accentColor.opacity(0.1),
+                    fallbackStrokeWidth: 1
+                )
                 
-                Spacer()
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.accentColor.opacity(0.1), lineWidth: 1),
-                alignment: .top
-            )
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // 应用选择区域
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text(LocalizedStrings.appSelectionSection)
-                                .font(.headline)
-                                .fontWeight(.medium)
-                        }
-                        
-                        AppSelectionView(
-                            selectedApp: $selectedApp,
-                            bundleId: $bundleId,
-                            appName: $appName
-                        )
-                    }
-                    .padding(20)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue.opacity(0.1), lineWidth: 1)
-                    )
-                    
-                    // 基本信息区域
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text(LocalizedStrings.basicInfoSection)
-                                .font(.headline)
-                                .fontWeight(.medium)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(LocalizedStrings.bundleId)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.primary)
-                                
-                                HStack(spacing: 12) {
-                                    TextField(LocalizedStrings.bundleIdPlaceholder, text: $bundleId)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    
-                                    Button(LocalizedStrings.preview) {
-                                        loadPreview()
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .disabled(bundleId.isEmpty || isLoadingPreview)
-                                    .frame(minWidth: 120)
-                                    .controlSize(.regular)
-                                }
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(LocalizedStrings.appName)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.primary)
-                                
-                                TextField(LocalizedStrings.appNamePlaceholder, text: $appName)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                            }
-                        }
-                    }
-                    .padding(20)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.green.opacity(0.1), lineWidth: 1)
-                    )
-                    
-                    // 提取策略区域
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text(LocalizedStrings.extractionStrategySection)
-                                .font(.headline)
-                                .fontWeight(.medium)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(LocalizedStrings.extractionStrategy)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.primary)
-                                
-                                Picker(LocalizedStrings.strategy, selection: $strategy) {
-                                    ForEach(TitleExtractionStrategy.allCases, id: \.self) { strategy in
-                                        Text(strategy.displayName).tag(strategy)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .onChange(of: strategy) { newStrategy in
-                                    // 当策略改变时，自动设置默认分隔符
-                                    if customSeparator.isEmpty || customSeparator == " - " {
-                                        customSeparator = getDefaultSeparator(for: newStrategy)
-                                    }
-                                }
-                            }
-                            
-                            // 为所有策略都显示分隔符设置（除了 fullTitle）
-                            if strategy != .fullTitle {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(LocalizedStrings.customSeparator)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.primary)
-                                    
-                                    TextField(getDefaultSeparatorPlaceholder(for: strategy), text: $customSeparator)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        .help(getSeparatorHelpText(for: strategy))
-                                }
-                            }
-                        }
-                    }
-                    .padding(20)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.orange.opacity(0.1), lineWidth: 1)
-                    )
-                    
-                    // 预览区域
-                    if showingPreview {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // 应用选择区域
                         VStack(alignment: .leading, spacing: 16) {
                             HStack {
-                                Text(LocalizedStrings.previewResultsSection)
+                                Text(LocalizedStrings.appSelectionSection)
                                     .font(.headline)
                                     .fontWeight(.medium)
                             }
                             
-                            PreviewSectionView(
-                                windowTitles: windowTitles,
-                                selectedWindowTitle: $selectedWindowTitle,
-                                strategy: strategy,
-                                customSeparator: customSeparator,
-                                isLoading: isLoadingPreview,
-                                errorMessage: previewErrorMessage,
-                                settingsManager: settingsManager
+                            AppSelectionView(
+                                selectedApp: $selectedApp,
+                                bundleId: $bundleId,
+                                appName: $appName
                             )
                         }
                         .padding(20)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.purple.opacity(0.1), lineWidth: 1)
+                        .adaptiveGlass(
+                            variant: .clear,
+                            tint: Color.blue.opacity(0.04),
+                            interactive: false,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                            fallbackMaterial: .thin,
+                            fallbackStrokeColor: Color.blue.opacity(0.1),
+                            fallbackStrokeWidth: 1
                         )
+                        
+                        // 基本信息区域
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text(LocalizedStrings.basicInfoSection)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(LocalizedStrings.bundleId)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    HStack(spacing: 12) {
+                                        TextField(LocalizedStrings.bundleIdPlaceholder, text: $bundleId)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        
+                                        Button(LocalizedStrings.preview) {
+                                            loadPreview()
+                                        }
+                                        .adaptiveGlassButtonStyle(prominent: true)
+                                        .disabled(bundleId.isEmpty || isLoadingPreview)
+                                        .frame(minWidth: 120)
+                                        .controlSize(.regular)
+                                    }
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(LocalizedStrings.appName)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    TextField(LocalizedStrings.appNamePlaceholder, text: $appName)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                }
+                            }
+                        }
+                        .padding(20)
+                        .adaptiveGlass(
+                            variant: .clear,
+                            tint: Color.green.opacity(0.04),
+                            interactive: false,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                            fallbackMaterial: .thin,
+                            fallbackStrokeColor: Color.green.opacity(0.1),
+                            fallbackStrokeWidth: 1
+                        )
+                        
+                        // 提取策略区域
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text(LocalizedStrings.extractionStrategySection)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(LocalizedStrings.extractionStrategy)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    Picker(LocalizedStrings.strategy, selection: $strategy) {
+                                        ForEach(TitleExtractionStrategy.allCases, id: \.self) { strategy in
+                                            Text(strategy.displayName).tag(strategy)
+                                        }
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                    .onChange(of: strategy) { newStrategy in
+                                        // 当策略改变时，自动设置默认分隔符
+                                        if customSeparator.isEmpty || customSeparator == " - " {
+                                            customSeparator = getDefaultSeparator(for: newStrategy)
+                                        }
+                                    }
+                                }
+                                
+                                // 为所有策略都显示分隔符设置（除了 fullTitle）
+                                if strategy != .fullTitle {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(LocalizedStrings.customSeparator)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.primary)
+                                        
+                                        TextField(getDefaultSeparatorPlaceholder(for: strategy), text: $customSeparator)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            .help(getSeparatorHelpText(for: strategy))
+                                    }
+                                }
+                            }
+                        }
+                        .padding(20)
+                        .adaptiveGlass(
+                            variant: .clear,
+                            tint: Color.orange.opacity(0.04),
+                            interactive: false,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                            fallbackMaterial: .thin,
+                            fallbackStrokeColor: Color.orange.opacity(0.1),
+                            fallbackStrokeWidth: 1
+                        )
+                        
+                        // 预览区域
+                        if showingPreview {
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack {
+                                    Text(LocalizedStrings.previewResultsSection)
+                                        .font(.headline)
+                                        .fontWeight(.medium)
+                                }
+                                
+                                PreviewSectionView(
+                                    windowTitles: windowTitles,
+                                    selectedWindowTitle: $selectedWindowTitle,
+                                    strategy: strategy,
+                                    customSeparator: customSeparator,
+                                    isLoading: isLoadingPreview,
+                                    errorMessage: previewErrorMessage,
+                                    settingsManager: settingsManager
+                                )
+                            }
+                            .padding(20)
+                            .adaptiveGlass(
+                                variant: .clear,
+                                tint: Color.purple.opacity(0.04),
+                                interactive: false,
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                                fallbackMaterial: .thin,
+                                fallbackStrokeColor: Color.purple.opacity(0.1),
+                                fallbackStrokeWidth: 1
+                            )
+                        }
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
+                }
+                
+                // 底部操作按钮
+                HStack {
+                    Button(LocalizedStrings.cancel) {
+                        dismiss()
+                    }
+                    .adaptiveGlassButtonStyle(prominent: false)
+                    .controlSize(.regular)
+                    
+                    Spacer()
+                    
+                    Button(LocalizedStrings.save) {
+                        onSave()
+                    }
+                    .adaptiveGlassButtonStyle(prominent: true)
+                    .controlSize(.regular)
+                    .disabled(bundleId.isEmpty || appName.isEmpty)
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 20)
+                .adaptiveGlass(
+                    variant: .regular,
+                    tint: nil,
+                    interactive: false,
+                    in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+                    fallbackMaterial: .regular,
+                    fallbackStrokeColor: Color.secondary.opacity(0.1),
+                    fallbackStrokeWidth: 1
+                )
             }
-            
-            // 底部操作按钮
-            HStack {
-                Button(LocalizedStrings.cancel) {
-                    dismiss()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                
-                Spacer()
-                
-                Button(LocalizedStrings.save) {
-                    onSave()
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .disabled(bundleId.isEmpty || appName.isEmpty)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1),
-                alignment: .bottom
+            .frame(width: 650, height: showingPreview ? 800 : 620)
+            .adaptiveGlass(
+                variant: .regular,
+                tint: nil,
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous),
+                fallbackMaterial: .regular,
+                fallbackStrokeColor: Color.primary.opacity(0.1),
+                fallbackStrokeWidth: 1
             )
         }
-        .frame(width: 650, height: showingPreview ? 800 : 620)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
     }
     
     // 预览功能方法
@@ -1606,14 +1680,14 @@ struct AboutView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .padding(.horizontal, 12)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(LinearGradient(
-                                colors: [Color.green.opacity(0.3), Color.teal.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ), lineWidth: 1)
+                    .adaptiveGlass(
+                        variant: .regular,
+                        tint: Color.green.opacity(0.08),
+                        interactive: true,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .regular,
+                        fallbackStrokeColor: Color.green.opacity(0.3),
+                        fallbackStrokeWidth: 1
                     )
                 }
                 .buttonStyle(.plain)
@@ -1652,14 +1726,14 @@ struct AboutView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .padding(.horizontal, 12)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(LinearGradient(
-                                colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ), lineWidth: 1)
+                    .adaptiveGlass(
+                        variant: .regular,
+                        tint: Color.blue.opacity(0.08),
+                        interactive: true,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .regular,
+                        fallbackStrokeColor: Color.blue.opacity(0.3),
+                        fallbackStrokeWidth: 1
                     )
                 }
                 .buttonStyle(.plain)
@@ -1692,14 +1766,14 @@ struct AboutView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .padding(.horizontal, 12)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(LinearGradient(
-                                colors: [Color.orange.opacity(0.3), Color.yellow.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ), lineWidth: 1)
+                    .adaptiveGlass(
+                        variant: .regular,
+                        tint: Color.orange.opacity(0.08),
+                        interactive: true,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .regular,
+                        fallbackStrokeColor: Color.orange.opacity(0.3),
+                        fallbackStrokeWidth: 1
                     )
                 }
                 .buttonStyle(.plain)
@@ -2079,10 +2153,14 @@ struct SwitcherDisplaySettingsView: View {
                 }
             }
             .padding(20)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
+            .adaptiveGlass(
+                variant: .regular,
+                tint: Color.accentColor.opacity(0.04),
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                fallbackMaterial: .thin,
+                fallbackStrokeColor: Color.accentColor.opacity(0.1),
+                fallbackStrokeWidth: 1
             )
         }
         .padding(.horizontal, 20)
@@ -2123,7 +2201,7 @@ struct VerticalPositionControl: View {
                     settingsManager.updateSwitcherVerticalPosition(0.39)
                     textFieldValue = "0.39"
                 }
-                .buttonStyle(.borderedProminent)
+                .adaptiveGlassButtonStyle(prominent: true)
                 .controlSize(.small)
             }
             
@@ -2195,7 +2273,13 @@ struct ColorSchemePreviewView: View {
             }
         }
         .padding(12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .adaptiveGlass(
+            variant: .clear,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous),
+            fallbackMaterial: .ultraThin
+        )
     }
 }
 
@@ -2209,11 +2293,13 @@ struct CircularPreviewView: View {
         ZStack {
             // Background
             Circle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Circle()
-                        .fill(colorScheme.backgroundGradient)
-                        .opacity(0.2)
+                .fill(colorScheme.backgroundGradient.opacity(0.2))
+                .adaptiveGlass(
+                    variant: .clear,
+                    tint: colorScheme.primaryColor.opacity(0.08),
+                    interactive: false,
+                    in: Circle(),
+                    fallbackMaterial: .ultraThin
                 )
             
             // Outer ring sectors
@@ -2235,17 +2321,15 @@ struct CircularPreviewView: View {
             
             // Center area
             Circle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Circle()
-                        .fill(colorScheme.backgroundGradient)
-                        .opacity(0.3)
-                )
-                .overlay(
-                    Circle()
-                        .stroke(colorScheme.glowColor, lineWidth: 1)
-                        .blur(radius: 2)
-                        .opacity(0.6)
+                .fill(colorScheme.backgroundGradient.opacity(0.3))
+                .adaptiveGlass(
+                    variant: .regular,
+                    tint: colorScheme.primaryColor.opacity(0.2),
+                    interactive: false,
+                    in: Circle(),
+                    fallbackMaterial: .ultraThin,
+                    fallbackStrokeColor: colorScheme.glowColor,
+                    fallbackStrokeWidth: 1
                 )
                 .frame(width: 50, height: 50)
                 .shadow(color: colorScheme.primaryColor.opacity(0.3), radius: 4, x: 0, y: 2)
@@ -2295,7 +2379,13 @@ struct ListPreviewView: View {
             .cornerRadius(4)
         }
         .padding(4)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 6))
+        .adaptiveGlass(
+            variant: .regular,
+            tint: colorScheme.primaryColor.opacity(0.08),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 6, style: .continuous),
+            fallbackMaterial: .ultraThin
+        )
     }
 }
 
@@ -2343,13 +2433,14 @@ struct ColorSchemeCardView: View {
                     .minimumScaleFactor(0.8)
             }
             .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? scheme.primaryColor.opacity(0.1) : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? scheme.primaryColor : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
-                    )
+            .adaptiveGlass(
+                variant: isSelected ? .regular : .clear,
+                tint: isSelected ? scheme.primaryColor.opacity(0.18) : nil,
+                interactive: true,
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous),
+                fallbackMaterial: .clear,
+                fallbackStrokeColor: isSelected ? scheme.primaryColor : Color.gray.opacity(0.2),
+                fallbackStrokeWidth: isSelected ? 2 : 1
             )
         }
         .buttonStyle(PlainButtonStyle())
