@@ -688,6 +688,7 @@ struct CircularLayoutView<ItemType>: View {
     let itemContentBuilder: (ItemType, Bool, Bool, Int) -> AnyView
 
     @StateObject private var settingsManager = SettingsManager.shared
+    @Namespace private var circularGlassNamespace
 
     // Ring layout parameters
     private var layoutSizeMultiplier: CGFloat { CGFloat(settingsManager.settings.circularLayoutSize) }
@@ -698,57 +699,69 @@ struct CircularLayoutView<ItemType>: View {
     private var centerIconSize: CGFloat { 40 + (16 * layoutSizeMultiplier) }
     
     var body: some View {
-        ZStack {
-            let colorScheme = settingsManager.settings.colorScheme
-            
-            // Background blur effect for outer ring area with color scheme
-            Circle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Circle()
-                        .fill(colorScheme.backgroundGradient)
-                        .opacity(0.2)
-                )
-                .frame(width: outerRadius * 2, height: outerRadius * 2)
-                .opacity(settingsManager.settings.circularLayoutOuterRingStyle.opacity)
-            
-            // Outer ring with sectors (Original implementation)
-            ringSectors
-            
-            // The refined, focused center area
-            centerArea
+        AdaptiveGlassContainer(spacing: 12) {
+            ZStack {
+                let colorScheme = settingsManager.settings.colorScheme
+                let ringVariant: AdaptiveGlassVariant = (settingsManager.settings.circularLayoutOuterRingStyle == .frosted) ? .regular : .clear
+                
+                // Background glass effect for outer ring area with color scheme
+                Circle()
+                    .fill(colorScheme.backgroundGradient.opacity(0.18))
+                    .frame(width: outerRadius * 2, height: outerRadius * 2)
+                    .adaptiveGlass(
+                        variant: ringVariant,
+                        tint: colorScheme.primaryColor.opacity(0.08),
+                        interactive: false,
+                        in: Circle(),
+                        fallbackMaterial: .ultraThin
+                    )
+                    .opacity(settingsManager.settings.circularLayoutOuterRingStyle.opacity)
+                
+                // Outer ring with sectors
+                ringSectors
+                
+                // The refined, focused center area
+                centerArea
+            }
+            .frame(width: ringSize, height: ringSize)
         }
-        .frame(width: ringSize, height: ringSize)
     }
 
-    // MARK: - Ring Sectors (Original implementation)
+    // MARK: - Ring Sectors
     @ViewBuilder
     private var ringSectors: some View {
         ForEach(Array(items.enumerated()), id: \.offset) { index, item in
             let angleRange = sectorAngleRange(for: index)
+            let sectorShape = ArcSector(
+                startAngle: angleRange.start,
+                endAngle: angleRange.end,
+                innerRadius: innerRadius,
+                outerRadius: outerRadius
+            )
             
             Button(action: {
                 onItemSelect(index)
             }) {
                 ZStack {
-                    // Sector background with blur effect
-                    ArcSector(
-                        startAngle: angleRange.start,
-                        endAngle: angleRange.end,
-                        innerRadius: innerRadius,
-                        outerRadius: outerRadius
-                    )
-                    .fill(.ultraThinMaterial)
-                    .opacity(sectorBackgroundOpacity())
-                    
-                    // Sector color overlay for selection and hover
-                    ArcSector(
-                        startAngle: angleRange.start,
-                        endAngle: angleRange.end,
-                        innerRadius: innerRadius,
-                        outerRadius: outerRadius
-                    )
-                    .foregroundColor(sectorBackgroundColor(for: index))
+                    if index == currentIndex {
+                        sectorShape
+                            .fill(sectorBackgroundColor(for: index))
+                            .adaptiveGlass(
+                                variant: .regular,
+                                tint: settingsManager.settings.colorScheme.primaryColor.opacity(0.28),
+                                interactive: true,
+                                in: sectorShape,
+                                fallbackMaterial: .ultraThin
+                            )
+                            .adaptiveGlassID("selectedSector", in: circularGlassNamespace)
+                    } else {
+                        sectorShape
+                            .fill(.ultraThinMaterial)
+                            .opacity(sectorBackgroundOpacity())
+                        
+                        sectorShape
+                            .foregroundColor(sectorBackgroundColor(for: index))
+                    }
                     
                     // Sector content
                     sectorContent(for: item, at: index)
@@ -766,35 +779,46 @@ struct CircularLayoutView<ItemType>: View {
         if currentIndex < items.count {
             let colorScheme = settingsManager.settings.colorScheme
             ZStack {
-                // 1. Base material with color scheme gradient
-                Circle().fill(.ultraThinMaterial)
-                    .overlay(
-                        Circle()
-                            .fill(colorScheme.backgroundGradient)
-                            .opacity(0.3)
-                    )
+                if #available(macOS 26.0, *) {
+                    Circle()
+                        .fill(colorScheme.backgroundGradient.opacity(0.25))
+                        .glassEffect(
+                            .regular
+                                .tint(colorScheme.primaryColor.opacity(0.22))
+                                .interactive(true),
+                            in: Circle()
+                        )
+                } else {
+                    // 1. Base material with color scheme gradient
+                    Circle().fill(.ultraThinMaterial)
+                        .overlay(
+                            Circle()
+                                .fill(colorScheme.backgroundGradient)
+                                .opacity(0.3)
+                        )
 
-                // 2. Inner glow with color scheme
-                Circle()
-                    .stroke(colorScheme.glowColor, lineWidth: 2)
-                    .blur(radius: 8)
-                    .opacity(0.6)
-                
-                // 3. Inner Shadow for depth
-                Circle().stroke(Color.black.opacity(0.2), lineWidth: 4).blur(radius: 5).clipShape(Circle()).padding(1)
-                
-                // 4. Edge Highlight for crystal effect with color scheme
-                Circle().stroke(
-                    AngularGradient(
-                        gradient: Gradient(colors: [
-                            colorScheme.accentColor.opacity(0.6),
-                            colorScheme.accentColor.opacity(0.0),
-                            colorScheme.accentColor.opacity(0.6)
-                        ]),
-                        center: .center
-                    ),
-                    lineWidth: 2
-                ).blur(radius: 1)
+                    // 2. Inner glow with color scheme
+                    Circle()
+                        .stroke(colorScheme.glowColor, lineWidth: 2)
+                        .blur(radius: 8)
+                        .opacity(0.6)
+                    
+                    // 3. Inner Shadow for depth
+                    Circle().stroke(Color.black.opacity(0.2), lineWidth: 4).blur(radius: 5).clipShape(Circle()).padding(1)
+                    
+                    // 4. Edge Highlight for crystal effect with color scheme
+                    Circle().stroke(
+                        AngularGradient(
+                            gradient: Gradient(colors: [
+                                colorScheme.accentColor.opacity(0.6),
+                                colorScheme.accentColor.opacity(0.0),
+                                colorScheme.accentColor.opacity(0.6)
+                            ]),
+                            center: .center
+                        ),
+                        lineWidth: 2
+                    ).blur(radius: 1)
+                }
 
                 // 5. The content with its ripple animation
                 centerContent
