@@ -92,13 +92,14 @@ struct AppSelectionView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(NSColor.controlBackgroundColor))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color(NSColor.separatorColor), lineWidth: 1)
-                            )
+                    .adaptiveGlass(
+                        variant: .regular,
+                        tint: nil,
+                        interactive: true,
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous),
+                        fallbackMaterial: .regular,
+                        fallbackStrokeColor: Color(NSColor.separatorColor),
+                        fallbackStrokeWidth: 1
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -133,7 +134,6 @@ struct AppSelectionView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(Color(NSColor.controlBackgroundColor))
                             
                             Divider()
                             
@@ -162,15 +162,16 @@ struct AppSelectionView: View {
                             }
                             .frame(maxHeight: 250)
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(NSColor.controlBackgroundColor))
-                                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color(NSColor.separatorColor), lineWidth: 1)
-                                )
+                        .adaptiveGlass(
+                            variant: .regular,
+                            tint: nil,
+                            interactive: false,
+                            in: RoundedRectangle(cornerRadius: 10, style: .continuous),
+                            fallbackMaterial: .regular,
+                            fallbackStrokeColor: Color(NSColor.separatorColor),
+                            fallbackStrokeWidth: 1
                         )
+                        .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 4)
                     }
                     .zIndex(1)
                 }
