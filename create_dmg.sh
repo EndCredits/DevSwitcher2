@@ -158,11 +158,12 @@ end tell
 EOD
 
 # 等待设置完成
+sync
 sleep 3
 
 # 卸载临时 DMG
 echo "卸载临时 DMG..."
-hdiutil detach "$MOUNT_DIR"
+hdiutil detach "$MOUNT_DIR" || hdiutil detach "$MOUNT_DIR" -force
 
 # 转换为最终的只读 DMG
 echo "创建最终 DMG..."
