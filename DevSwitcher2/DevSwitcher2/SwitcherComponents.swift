@@ -129,6 +129,7 @@ struct BaseSwitcherView<ItemType>: View {
     
     @State private var hoveredIndex: Int? = nil
     @StateObject private var settingsManager = SettingsManager.shared
+    @Namespace private var switcherGlassNamespace
     
     var body: some View {
         Group {
@@ -144,15 +145,26 @@ struct BaseSwitcherView<ItemType>: View {
     
     // MARK: - List Layout View
     private var listLayoutView: some View {
-        VStack(spacing: 0) {
-            // 只有在非简化模式下才显示header
-            headerView
-            itemListView
+        let colorScheme = settingsManager.settings.colorScheme
+        return AdaptiveGlassContainer(spacing: 8) {
+            VStack(spacing: 0) {
+                // 只有在非简化模式下才显示header
+                headerView
+                itemListView
+            }
+            .adaptiveGlass(
+                variant: .regular,
+                tint: colorScheme.primaryColor.opacity(0.08),
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+                fallbackMaterial: .ultraThin,
+                fallbackStrokeColor: colorScheme.primaryColor.opacity(0.18),
+                fallbackStrokeWidth: 1
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.14), radius: 22, x: 0, y: 10)
+            .frame(maxWidth: 600, maxHeight: 400)
         }
-        .background(.ultraThinMaterial)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-        .frame(maxWidth: 600, maxHeight: 400)
     }
     
     // MARK: - Circular Layout View
@@ -180,10 +192,11 @@ struct BaseSwitcherView<ItemType>: View {
     }
     
     private var defaultHeaderView: some View {
-        HStack {
+        let colorScheme = settingsManager.settings.colorScheme
+        return HStack {
             Image(systemName: headerIcon)
 //                .symbolEffect(.breathe.plain.byLayer, options: .repeat(.continuous))
-                .foregroundColor(settingsManager.settings.colorScheme.primaryColor)
+                .foregroundColor(colorScheme.primaryColor)
                 .font(.title2)
             
             Text(config.title)
@@ -194,7 +207,18 @@ struct BaseSwitcherView<ItemType>: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(.regularMaterial)
+        .adaptiveGlass(
+            variant: .clear,
+            tint: colorScheme.primaryColor.opacity(0.1),
+            interactive: false,
+            in: CustomUnevenRoundedRectangle(
+                topLeadingRadius: 16,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 16
+            ),
+            fallbackMaterial: .regular
+        )
     }
     
     private var simplifiedHeaderView: some View {
@@ -220,7 +244,7 @@ struct BaseSwitcherView<ItemType>: View {
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .background(backgroundColorForIndex(index))
+                        .background(rowBackgroundView(for: index))
                         // 在简化模式下，为第一个item添加上方圆角
                         .clipShape(itemClipShape(for: index))
                         .id(index) // Add ID for scroll positioning
@@ -230,7 +254,6 @@ struct BaseSwitcherView<ItemType>: View {
                     }
                 }
             }
-            .background(.ultraThinMaterial)
             // 在简化模式下，移除ScrollView自身的圆角，让第一个item处理圆角
             .clipShape(scrollViewClipShape())
             .onChange(of: currentIndex) { newIndex in
@@ -321,14 +344,25 @@ struct BaseSwitcherView<ItemType>: View {
         }
     }
     
-    private func backgroundColorForIndex(_ index: Int) -> Color {
+    @ViewBuilder
+    private func rowBackgroundView(for index: Int) -> some View {
         let colorScheme = settingsManager.settings.colorScheme
+        let shape = itemClipShape(for: index)
         if index == currentIndex {
-            return colorScheme.primaryColor.opacity(0.15)
+            Color.clear
+                .adaptiveGlass(
+                    variant: .clear,
+                    tint: colorScheme.primaryColor.opacity(0.22),
+                    interactive: true,
+                    in: shape,
+                    fallbackMaterial: .clear
+                )
+                .background(shape.fill(colorScheme.primaryColor.opacity(0.15)))
+                .adaptiveGlassID("selectedRow", in: switcherGlassNamespace)
         } else if index == hoveredIndex {
-            return colorScheme.primaryColor.opacity(0.05)
+            shape.fill(colorScheme.primaryColor.opacity(0.08))
         } else {
-            return Color.clear
+            Color.clear
         }
     }
     
@@ -341,21 +375,21 @@ struct BaseSwitcherView<ItemType>: View {
         if isSimplified {
             if isFirstItem && isLastItem {
                 // 如果只有一个item，使用完整圆角
-                return AnyShape(RoundedRectangle(cornerRadius: 12))
+                return AnyShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             } else if isFirstItem {
                 // 第一个item：只有上方圆角
                 return AnyShape(CustomUnevenRoundedRectangle(
-                    topLeadingRadius: 12,
+                    topLeadingRadius: 16,
                     bottomLeadingRadius: 0,
                     bottomTrailingRadius: 0,
-                    topTrailingRadius: 12
+                    topTrailingRadius: 16
                 ))
             } else if isLastItem {
                 // 最后一个item：只有下方圆角
                 return AnyShape(CustomUnevenRoundedRectangle(
                     topLeadingRadius: 0,
-                    bottomLeadingRadius: 12,
-                    bottomTrailingRadius: 12,
+                    bottomLeadingRadius: 16,
+                    bottomTrailingRadius: 16,
                     topTrailingRadius: 0
                 ))
             } else {
@@ -363,6 +397,14 @@ struct BaseSwitcherView<ItemType>: View {
                 return AnyShape(Rectangle())
             }
         } else {
+            if isLastItem {
+                return AnyShape(CustomUnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 16,
+                    bottomTrailingRadius: 16,
+                    topTrailingRadius: 0
+                ))
+            }
             // 非简化模式：不添加额外的圆角
             return AnyShape(Rectangle())
         }
@@ -373,11 +415,34 @@ struct BaseSwitcherView<ItemType>: View {
         
         if isSimplified {
             // 简化模式：使用完整圆角
-            return AnyShape(RoundedRectangle(cornerRadius: 12))
+            return AnyShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         } else {
             // 非简化模式：不添加额外的圆角（由外层容器处理）
             return AnyShape(Rectangle())
         }
+    }
+}
+
+// MARK: - Number Key Badge View
+struct NumberKeyBadgeView: View {
+    let number: Int
+    
+    var body: some View {
+        Text("\(number)")
+            .font(.system(.caption, design: .rounded))
+            .fontWeight(.semibold)
+            .foregroundColor(.secondary)
+            .frame(width: 22, height: 18)
+            .adaptiveGlass(
+                variant: .clear,
+                tint: nil,
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 5, style: .continuous),
+                fallbackMaterial: .regular,
+                fallbackStrokeColor: Color.secondary.opacity(0.25),
+                fallbackStrokeWidth: 0.5
+            )
+            .shadow(color: .black.opacity(0.08), radius: 1, x: 0, y: 1)
     }
 }
 
@@ -429,20 +494,7 @@ struct WindowItemContentView: View {
                 // Number key indicator (conditionally display based on settings)
                 Group {
                     if showNumberKeys && itemIndex < 9 {
-                        Text("\(itemIndex + 1)")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-                            .frame(width: 22, height: 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(.regularMaterial)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .stroke(.quaternary, lineWidth: 0.5)
-                                    )
-                                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
-                            )
+                        NumberKeyBadgeView(number: itemIndex + 1)
                     } else if showNumberKeys {
                         // 保持空间占位以维持布局一致性
                         Color.clear
@@ -527,20 +579,7 @@ struct AppItemContentView: View {
                 // Number key indicator (conditionally display based on settings)
                 Group {
                     if showNumberKeys && itemIndex < 9 {
-                        Text("\(itemIndex + 1)")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-                            .frame(width: 22, height: 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(.regularMaterial)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .stroke(.quaternary, lineWidth: 0.5)
-                                    )
-                                    .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
-                            )
+                        NumberKeyBadgeView(number: itemIndex + 1)
                     } else if showNumberKeys {
                         // 保持空间占位以维持布局一致性
                         Color.clear
