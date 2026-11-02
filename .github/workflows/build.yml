@@ -1,0 +1,64 @@
+name: Build DevSwitcher2
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Release App & DMG
+    runs-on: macos-26
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode 26+
+        run: |
+          echo "Available Xcode installations:"
+          ls -d /Applications/Xcode*.app || true
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)
+          echo "Selecting: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE"
+          xcodebuild -version
+          xcrun --show-sdk-version
+
+      - name: Build DevSwitcher2 (Release)
+        run: |
+          xcodebuild -project DevSwitcher2/DevSwitcher2.xcodeproj \
+            -scheme DevSwitcher2 \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            clean build
+
+      - name: Ad-hoc sign and package DMG
+        run: |
+          mkdir -p signed-release
+          cp -R "build/DerivedData/Build/Products/Release/DevSwitcher2.app" "signed-release/DevSwitcher2.app"
+          codesign --force --deep --sign - \
+            --entitlements "DevSwitcher2/DevSwitcher2/DevSwitcher2.entitlements" \
+            "signed-release/DevSwitcher2.app"
+          codesign --verify --deep --strict --verbose=2 "signed-release/DevSwitcher2.app"
+
+          chmod +x create_dmg.sh
+          ./create_dmg.sh --app-path "signed-release/DevSwitcher2.app" --output-dir "signed-release"
+          ls -lh signed-release/
+
+      - name: Upload App and DMG Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DevSwitcher2-macOS26-Release
+          path: |
+            signed-release/DevSwitcher2*.dmg
+            signed-release/DevSwitcher2.app
+          retention-days: 14
