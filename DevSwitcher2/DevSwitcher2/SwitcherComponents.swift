@@ -146,25 +146,24 @@ struct BaseSwitcherView<ItemType>: View {
     // MARK: - List Layout View
     private var listLayoutView: some View {
         let colorScheme = settingsManager.settings.colorScheme
-        return AdaptiveGlassContainer(spacing: 8) {
-            VStack(spacing: 0) {
-                // 只有在非简化模式下才显示header
-                headerView
-                itemListView
-            }
-            .adaptiveGlass(
-                variant: .regular,
-                tint: colorScheme.primaryColor.opacity(0.08),
-                interactive: false,
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous),
-                fallbackMaterial: .ultraThin,
-                fallbackStrokeColor: colorScheme.primaryColor.opacity(0.18),
-                fallbackStrokeWidth: 1
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: .black.opacity(0.14), radius: 22, x: 0, y: 10)
-            .frame(maxWidth: 600, maxHeight: 400)
+        return VStack(spacing: 0) {
+            // 只有在非简化模式下才显示header
+            headerView
+                .zIndex(1)
+            itemListView
         }
+        .adaptiveGlass(
+            variant: .regular,
+            tint: colorScheme.primaryColor.opacity(0.08),
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+            fallbackMaterial: .ultraThin,
+            fallbackStrokeColor: colorScheme.primaryColor.opacity(0.18),
+            fallbackStrokeWidth: 1
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.14), radius: 22, x: 0, y: 10)
+        .frame(maxWidth: 600, maxHeight: 400)
     }
     
     // MARK: - Circular Layout View
@@ -231,25 +230,27 @@ struct BaseSwitcherView<ItemType>: View {
     private var itemListView: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        Button(action: {
-                            onItemSelect(index)
-                        }) {
-                            itemContentBuilder(
-                                item,
-                                index == currentIndex,
-                                index == hoveredIndex,
-                                index
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .background(rowBackgroundView(for: index))
-                        // 在简化模式下，为第一个item添加上方圆角
-                        .clipShape(itemClipShape(for: index))
-                        .id(index) // Add ID for scroll positioning
-                        .onHover { isHovering in
-                            hoveredIndex = isHovering ? index : nil
+                AdaptiveGlassContainer(spacing: 8) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                            Button(action: {
+                                onItemSelect(index)
+                            }) {
+                                itemContentBuilder(
+                                    item,
+                                    index == currentIndex,
+                                    index == hoveredIndex,
+                                    index
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .background(rowBackgroundView(for: index))
+                            // 在简化模式下，为第一个item添加上方圆角
+                            .clipShape(itemClipShape(for: index))
+                            .id(index) // Add ID for scroll positioning
+                            .onHover { isHovering in
+                                hoveredIndex = isHovering ? index : nil
+                            }
                         }
                     }
                 }

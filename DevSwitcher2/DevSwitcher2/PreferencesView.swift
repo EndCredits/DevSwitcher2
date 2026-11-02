@@ -15,22 +15,22 @@ struct PreferencesView: View {
     @Namespace private var preferencesTabNamespace
     
     var body: some View {
-        AdaptiveGlassContainer(spacing: 12) {
-            VStack(spacing: 0) {
-                // 顶部标题栏
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("DevSwitcher2")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        Text(LocalizedStrings.preferencesSubtitle)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    // Tab selector
+        VStack(spacing: 0) {
+            // 顶部标题栏
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("DevSwitcher2")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text(LocalizedStrings.preferencesSubtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Tab selector
+                AdaptiveGlassContainer(spacing: 8) {
                     HStack(spacing: 4) {
                         TabButton(
                             title: LocalizedStrings.generalSettingsTabTitle,
@@ -71,39 +71,41 @@ struct PreferencesView: View {
                         fallbackMaterial: .regular
                     )
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-                .adaptiveGlass(
-                    variant: .clear,
-                    tint: nil,
-                    interactive: false,
-                    in: Rectangle(),
-                    fallbackMaterial: .ultraThin
-                )
-                
-                // Content area
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        if selectedTab == 0 {
-                            GeneralSettingsView()
-                        } else if selectedTab == 1 {
-                            AdvancedSettingsView()
-                        } else {
-                            AboutView()
-                        }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
+            .adaptiveGlass(
+                variant: .clear,
+                tint: nil,
+                interactive: false,
+                in: Rectangle(),
+                fallbackMaterial: .ultraThin
+            )
+            .zIndex(1)
+            
+            // Content area
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    if selectedTab == 0 {
+                        GeneralSettingsView()
+                    } else if selectedTab == 1 {
+                        AdvancedSettingsView()
+                    } else {
+                        AboutView()
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 20)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
             }
-            .frame(width: 800, height: 600)
-            .background(Color(NSColor.windowBackgroundColor))
-            .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
-                // Force refresh view when language changes
-                // SwiftUI will automatically recalculate LocalizedStrings values
-            }
+            .clipped()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(width: 800, height: 600)
+        .background(Color(NSColor.windowBackgroundColor))
+        .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+            // Force refresh view when language changes
+            // SwiftUI will automatically recalculate LocalizedStrings values
         }
     }
 }
@@ -1320,236 +1322,237 @@ struct AddAppConfigView: View {
     @State private var selectedApp: InstalledAppInfo? = nil
     
     var body: some View {
-        AdaptiveGlassContainer(spacing: 12) {
-            VStack(alignment: .leading, spacing: 0) {
-                // 标题区域
-                HStack {
-                    Text(LocalizedStrings.addAppConfig)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
-                .adaptiveGlass(
-                    variant: .regular,
-                    tint: Color.accentColor.opacity(0.04),
-                    interactive: false,
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous),
-                    fallbackMaterial: .regular,
-                    fallbackStrokeColor: Color.accentColor.opacity(0.1),
-                    fallbackStrokeWidth: 1
-                )
+        VStack(alignment: .leading, spacing: 0) {
+            // 标题区域
+            HStack {
+                Text(LocalizedStrings.addAppConfig)
+                    .font(.title2)
+                    .fontWeight(.semibold)
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // 应用选择区域
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                Text(LocalizedStrings.appSelectionSection)
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                            }
-                            
-                            AppSelectionView(
-                                selectedApp: $selectedApp,
-                                bundleId: $bundleId,
-                                appName: $appName
-                            )
-                        }
-                        .padding(20)
-                        .adaptiveGlass(
-                            variant: .clear,
-                            tint: Color.blue.opacity(0.04),
-                            interactive: false,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
-                            fallbackMaterial: .thin,
-                            fallbackStrokeColor: Color.blue.opacity(0.1),
-                            fallbackStrokeWidth: 1
-                        )
-                        
-                        // 基本信息区域
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                Text(LocalizedStrings.basicInfoSection)
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(LocalizedStrings.bundleId)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.primary)
-                                    
-                                    HStack(spacing: 12) {
-                                        TextField(LocalizedStrings.bundleIdPlaceholder, text: $bundleId)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        
-                                        Button(LocalizedStrings.preview) {
-                                            loadPreview()
-                                        }
-                                        .adaptiveGlassButtonStyle(prominent: true)
-                                        .disabled(bundleId.isEmpty || isLoadingPreview)
-                                        .frame(minWidth: 120)
-                                        .controlSize(.regular)
-                                    }
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(LocalizedStrings.appName)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.primary)
-                                    
-                                    TextField(LocalizedStrings.appNamePlaceholder, text: $appName)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                }
-                            }
-                        }
-                        .padding(20)
-                        .adaptiveGlass(
-                            variant: .clear,
-                            tint: Color.green.opacity(0.04),
-                            interactive: false,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
-                            fallbackMaterial: .thin,
-                            fallbackStrokeColor: Color.green.opacity(0.1),
-                            fallbackStrokeWidth: 1
-                        )
-                        
-                        // 提取策略区域
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                Text(LocalizedStrings.extractionStrategySection)
-                                    .font(.headline)
-                                    .fontWeight(.medium)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(LocalizedStrings.extractionStrategy)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.primary)
-                                    
-                                    Picker(LocalizedStrings.strategy, selection: $strategy) {
-                                        ForEach(TitleExtractionStrategy.allCases, id: \.self) { strategy in
-                                            Text(strategy.displayName).tag(strategy)
-                                        }
-                                    }
-                                    .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: strategy) { newStrategy in
-                                        // 当策略改变时，自动设置默认分隔符
-                                        if customSeparator.isEmpty || customSeparator == " - " {
-                                            customSeparator = getDefaultSeparator(for: newStrategy)
-                                        }
-                                    }
-                                }
-                                
-                                // 为所有策略都显示分隔符设置（除了 fullTitle）
-                                if strategy != .fullTitle {
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Text(LocalizedStrings.customSeparator)
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(.primary)
-                                        
-                                        TextField(getDefaultSeparatorPlaceholder(for: strategy), text: $customSeparator)
-                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                            .help(getSeparatorHelpText(for: strategy))
-                                    }
-                                }
-                            }
-                        }
-                        .padding(20)
-                        .adaptiveGlass(
-                            variant: .clear,
-                            tint: Color.orange.opacity(0.04),
-                            interactive: false,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
-                            fallbackMaterial: .thin,
-                            fallbackStrokeColor: Color.orange.opacity(0.1),
-                            fallbackStrokeWidth: 1
-                        )
-                        
-                        // 预览区域
-                        if showingPreview {
-                            VStack(alignment: .leading, spacing: 16) {
-                                HStack {
-                                    Text(LocalizedStrings.previewResultsSection)
-                                        .font(.headline)
-                                        .fontWeight(.medium)
-                                }
-                                
-                                PreviewSectionView(
-                                    windowTitles: windowTitles,
-                                    selectedWindowTitle: $selectedWindowTitle,
-                                    strategy: strategy,
-                                    customSeparator: customSeparator,
-                                    isLoading: isLoadingPreview,
-                                    errorMessage: previewErrorMessage,
-                                    settingsManager: settingsManager
-                                )
-                            }
-                            .padding(20)
-                            .adaptiveGlass(
-                                variant: .clear,
-                                tint: Color.purple.opacity(0.04),
-                                interactive: false,
-                                in: RoundedRectangle(cornerRadius: 12, style: .continuous),
-                                fallbackMaterial: .thin,
-                                fallbackStrokeColor: Color.purple.opacity(0.1),
-                                fallbackStrokeWidth: 1
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 20)
-                }
-                
-                // 底部操作按钮
-                HStack {
-                    Button(LocalizedStrings.cancel) {
-                        dismiss()
-                    }
-                    .adaptiveGlassButtonStyle(prominent: false)
-                    .controlSize(.regular)
-                    
-                    Spacer()
-                    
-                    Button(LocalizedStrings.save) {
-                        onSave()
-                    }
-                    .adaptiveGlassButtonStyle(prominent: true)
-                    .controlSize(.regular)
-                    .disabled(bundleId.isEmpty || appName.isEmpty)
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
-                .adaptiveGlass(
-                    variant: .regular,
-                    tint: nil,
-                    interactive: false,
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous),
-                    fallbackMaterial: .regular,
-                    fallbackStrokeColor: Color.secondary.opacity(0.1),
-                    fallbackStrokeWidth: 1
-                )
+                Spacer()
             }
-            .frame(width: 650, height: showingPreview ? 800 : 620)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+            .adaptiveGlass(
+                variant: .regular,
+                tint: Color.accentColor.opacity(0.04),
+                interactive: false,
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous),
+                fallbackMaterial: .regular,
+                fallbackStrokeColor: Color.accentColor.opacity(0.1),
+                fallbackStrokeWidth: 1
+            )
+            .zIndex(1)
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // 应用选择区域
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text(LocalizedStrings.appSelectionSection)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                        }
+                        
+                        AppSelectionView(
+                            selectedApp: $selectedApp,
+                            bundleId: $bundleId,
+                            appName: $appName
+                        )
+                    }
+                    .padding(20)
+                    .adaptiveGlass(
+                        variant: .clear,
+                        tint: Color.blue.opacity(0.04),
+                        interactive: false,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .thin,
+                        fallbackStrokeColor: Color.blue.opacity(0.1),
+                        fallbackStrokeWidth: 1
+                    )
+                    
+                    // 基本信息区域
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text(LocalizedStrings.basicInfoSection)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(LocalizedStrings.bundleId)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                
+                                HStack(spacing: 12) {
+                                    TextField(LocalizedStrings.bundleIdPlaceholder, text: $bundleId)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    Button(LocalizedStrings.preview) {
+                                        loadPreview()
+                                    }
+                                    .adaptiveGlassButtonStyle(prominent: true)
+                                    .disabled(bundleId.isEmpty || isLoadingPreview)
+                                    .frame(minWidth: 120)
+                                    .controlSize(.regular)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(LocalizedStrings.appName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                
+                                TextField(LocalizedStrings.appNamePlaceholder, text: $appName)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                            }
+                        }
+                    }
+                    .padding(20)
+                    .adaptiveGlass(
+                        variant: .clear,
+                        tint: Color.green.opacity(0.04),
+                        interactive: false,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .thin,
+                        fallbackStrokeColor: Color.green.opacity(0.1),
+                        fallbackStrokeWidth: 1
+                    )
+                    
+                    // 提取策略区域
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text(LocalizedStrings.extractionStrategySection)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(LocalizedStrings.extractionStrategy)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                
+                                Picker(LocalizedStrings.strategy, selection: $strategy) {
+                                    ForEach(TitleExtractionStrategy.allCases, id: \.self) { strategy in
+                                        Text(strategy.displayName).tag(strategy)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .onChange(of: strategy) { newStrategy in
+                                    // 当策略改变时，自动设置默认分隔符
+                                    if customSeparator.isEmpty || customSeparator == " - " {
+                                        customSeparator = getDefaultSeparator(for: newStrategy)
+                                    }
+                                }
+                            }
+                            
+                            // 为所有策略都显示分隔符设置（除了 fullTitle）
+                            if strategy != .fullTitle {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(LocalizedStrings.customSeparator)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    TextField(getDefaultSeparatorPlaceholder(for: strategy), text: $customSeparator)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .help(getSeparatorHelpText(for: strategy))
+                                }
+                            }
+                        }
+                    }
+                    .padding(20)
+                    .adaptiveGlass(
+                        variant: .clear,
+                        tint: Color.orange.opacity(0.04),
+                        interactive: false,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .thin,
+                        fallbackStrokeColor: Color.orange.opacity(0.1),
+                        fallbackStrokeWidth: 1
+                    )
+                    
+                    // 预览区域
+                    if showingPreview {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text(LocalizedStrings.previewResultsSection)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                            }
+                            
+                            PreviewSectionView(
+                                windowTitles: windowTitles,
+                                selectedWindowTitle: $selectedWindowTitle,
+                                strategy: strategy,
+                                customSeparator: customSeparator,
+                                isLoading: isLoadingPreview,
+                                errorMessage: previewErrorMessage,
+                                settingsManager: settingsManager
+                            )
+                        }
+                        .padding(20)
+                        .adaptiveGlass(
+                            variant: .clear,
+                            tint: Color.purple.opacity(0.04),
+                            interactive: false,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                            fallbackMaterial: .thin,
+                            fallbackStrokeColor: Color.purple.opacity(0.1),
+                            fallbackStrokeWidth: 1
+                        )
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+            }
+            .clipped()
+            
+            // 底部操作按钮
+            HStack {
+                Button(LocalizedStrings.cancel) {
+                    dismiss()
+                }
+                .adaptiveGlassButtonStyle(prominent: false)
+                .controlSize(.regular)
+                
+                Spacer()
+                
+                Button(LocalizedStrings.save) {
+                    onSave()
+                }
+                .adaptiveGlassButtonStyle(prominent: true)
+                .controlSize(.regular)
+                .disabled(bundleId.isEmpty || appName.isEmpty)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
             .adaptiveGlass(
                 variant: .regular,
                 tint: nil,
                 interactive: false,
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous),
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous),
                 fallbackMaterial: .regular,
-                fallbackStrokeColor: Color.primary.opacity(0.1),
+                fallbackStrokeColor: Color.secondary.opacity(0.1),
                 fallbackStrokeWidth: 1
             )
+            .zIndex(1)
         }
+        .frame(width: 650, height: showingPreview ? 800 : 620)
+        .adaptiveGlass(
+            variant: .regular,
+            tint: nil,
+            interactive: false,
+            in: RoundedRectangle(cornerRadius: 20, style: .continuous),
+            fallbackMaterial: .regular,
+            fallbackStrokeColor: Color.primary.opacity(0.1),
+            fallbackStrokeWidth: 1
+        )
     }
     
     // 预览功能方法
